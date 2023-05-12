@@ -15,6 +15,7 @@ class Player(pygame.sprite.Sprite):
                            'right_idle': [], 'left_idle': [], 'up_idle': [], 'down_idle': [],
                            'right_attack': [], 'left_attack': [], 'up_attack': [], 'down_attack': []}
         self.import_player_assets()
+        self.status = 'down'
 
         # movement
         self.direction = pygame.math.Vector2()
@@ -38,15 +39,19 @@ class Player(pygame.sprite.Sprite):
         # movement input
         if keys[pygame.K_UP]:
             self.direction.y = -1
+            self.status = 'up'
         elif keys[pygame.K_DOWN]:
             self.direction.y = 1
+            self.status = 'down'
         else:
             self.direction.y = 0
 
         if keys[pygame.K_RIGHT]:
             self.direction.x = 1
+            self.status = 'right'
         elif keys[pygame.K_LEFT]:
             self.direction.x = -1
+            self.status = 'left'
         else:
             self.direction.x = 0
 
@@ -61,6 +66,23 @@ class Player(pygame.sprite.Sprite):
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
             print('magic')
+
+    def get_status(self):
+        if self.direction.x == 0 and self.direction.y == 0:
+            if 'idle' not in self.status and 'attack' not in self.status:
+                self.status = self.status + '_idle'
+
+        if self.attacking:
+            self.direction.x = 0
+            self.direction.y = 0
+            if 'attack' not in self.status:
+                if 'idle' in self.status:
+                    self.status = self.status.replace('_idle', '_attack')
+                else:
+                    self.status = self.status + '_attack'
+        else:
+            if 'attack' in self.status:
+                self.status = self.status.replace('_attack', '')
 
     def move(self, speed):
         if self.direction.magnitude() != 0:
@@ -97,4 +119,5 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.input()
         self.cooldowns()
+        self.get_status()
         self.move(self.speed)
