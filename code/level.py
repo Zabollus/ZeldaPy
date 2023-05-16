@@ -7,6 +7,7 @@ from support import *
 from random import choice
 from weapon import Weapon
 from ui import UI
+from enemy import Enemy
 
 
 class Level:
@@ -27,7 +28,8 @@ class Level:
         layouts = {
             'boundary': import_csv_layout('../map/map_FloorBlocks.csv'),
             'grass': import_csv_layout('../map/map_Grass.csv'),
-            'object': import_csv_layout('../map/map_Objects.csv')
+            'object': import_csv_layout('../map/map_Objects.csv'),
+            'entities': import_csv_layout('../map/map_Entities.csv')
         }
         graphics = {
             'grass': import_folder('../graphics/grass'),
@@ -48,8 +50,20 @@ class Level:
                         if style == 'object':
                             surf = graphics['objects'][int(col)]
                             Tile((x, y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
-        self.player = Player((2000, 1430), [self.visible_sprites], self.obstacle_sprites, self.create_attack,
-                             self.destroy_attack, self.create_magic)
+                        if style == 'entities':
+                            if col == '394':
+                                self.player = Player((x, y), [self.visible_sprites], self.obstacle_sprites,
+                                                     self.create_attack, self.destroy_attack, self.create_magic)
+                            else:
+                                if col == '390':
+                                    monster_name = 'bamboo'
+                                elif col == '391':
+                                    monster_name = 'spirit'
+                                elif col == '392':
+                                    monster_name = 'raccoon'
+                                else:
+                                    monster_name = 'squid'
+                                Enemy(monster_name, (x, y), [self.visible_sprites])
 
     def create_attack(self):
         self.current_attack = Weapon(self.player, [self.visible_sprites])
@@ -89,6 +103,6 @@ class YSortCameraGroup(pygame.sprite.Group):
         self.display_surface.blit(self.floor_surf, floor_offset_pos)
 
         # for sprite in self.sprites():
-        for sprite in sorted(self.sprites(), key=lambda sprite:sprite.rect.centery):
+        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
             offset_pos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offset_pos)
