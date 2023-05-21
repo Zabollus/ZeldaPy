@@ -9,6 +9,7 @@ class Upgrade:
         self.player = player
         self.attribute_nr = len(player.stats)
         self.attribute_names = list(player.stats.keys())
+        self.max_values = list(player.max_stats.values())
         self.font = pygame.font.Font(UI_FONT, UI_FONT_SIZE)
 
         # item creation
@@ -58,8 +59,12 @@ class Upgrade:
     def display(self):
         self.input()
         self.selection_cooldown()
-        for item in self.item_list:
-            item.display(self.display_surface, 0, 'test', 1, 2, 3)
+        for index, item in enumerate(self.item_list):
+            name = self.attribute_names[index]
+            value = self.player.get_value_by_index(index)
+            max_value = self.max_values[index]
+            cost = self.player.get_cost_by_index(index)
+            item.display(self.display_surface, self.selection_index, name, value, max_value, cost)
 
 
 class Item:
@@ -68,5 +73,35 @@ class Item:
         self.index = index
         self.font = font
 
+    def display_names(self, surface, name, cost, selected):
+        color = TEXT_COLOR_SELECTED if selected else TEXT_COLOR
+
+        title_surf = self.font.render(name, False, color)
+        title_rect = title_surf.get_rect(midtop=self.rect.midtop + pygame.math.Vector2(0, 20))
+
+        cost_surf = self.font.render(f'{int(cost)}', False, color)
+        cost_rect = cost_surf.get_rect(midbottom=self.rect.midbottom - pygame.math.Vector2(0, 20))
+
+        surface.blit(title_surf, title_rect)
+        surface.blit(cost_surf, cost_rect)
+
+    def display_bar(self, surface, value, max_value, selected):
+        top = self.rect.midtop + pygame.math.Vector2(0, 60)
+        bottom = self.rect.midbottom - pygame.math.Vector2(0, 60)
+        color = BAR_COLOR_SELECTED if selected else BAR_COLOR
+        full_height = bottom[1] - top[1]
+        relative_number = (value / max_value) * full_height
+        value_rect = pygame.Rect(top[0] - 15, bottom[1] - relative_number, 30, 10)
+
+        pygame.draw.line(surface, color, top, bottom, 5)
+        pygame.draw.rect(surface, color, value_rect)
+
     def display(self, surface, selection_num, name, value, max_value, cost):
-        pygame.draw.rect(surface, UI_BG_COLOR, self.rect)
+        if self.index == selection_num:
+            pygame.draw.rect(surface, UPGRADE_BG_COLOR_SELECTED, self.rect)
+            pygame.draw.rect(surface, UI_BORDER_COLOR, self.rect, 4)
+        else:
+            pygame.draw.rect(surface, UI_BG_COLOR, self.rect)
+            pygame.draw.rect(surface, UI_BORDER_COLOR, self.rect, 4)
+        self.display_names(surface, name, cost, self.index == selection_num)
+        self.display_bar(surface, value, max_value, self.index == selection_num)
