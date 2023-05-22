@@ -10,7 +10,7 @@ class Player(Entity):
         super().__init__(groups)
         self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(0, -26)
+        self.hitbox = self.rect.inflate(-6, HITBOX_OFFSET['player'])
 
         # graphics setup
         self.import_player_assets()
@@ -44,7 +44,7 @@ class Player(Entity):
         self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic': 100, 'speed': 100}
         self.health = self.stats['health']
         self.energy = self.stats['energy']
-        self.exp = 5000
+        self.exp = 0
         self.speed = self.stats['speed']
 
         # damage timer
