@@ -35,6 +35,12 @@ class Level:
         self.animation_player = AnimationPlayer()
         self.magic_player = MagicPlayer(self.animation_player)
 
+        self.main_sound = pygame.mixer.Sound('../audio/main.ogg')
+        self.main_sound.set_volume(0.5)
+        self.main_sound.play(loops=-1)
+
+        self.game_over_music = pygame.mixer.Sound('../audio/GameOver.wav')
+
     def create_map(self):
         layouts = {
             'boundary': import_csv_layout('../map/map_FloorBlocks.csv'),
@@ -126,7 +132,10 @@ class Level:
         self.game_paused = not self.game_paused
 
     def game_over(self):
-        self.game_over_status = True
+        if not self.game_over_status:
+            self.main_sound.stop()
+            self.game_over_music.play()
+            self.game_over_status = True
         game_over_surf = pygame.font.Font(UI_FONT, 120).render('GAME OVER', False, 'red')
         game_over_rect = game_over_surf.get_rect(center=(self.display_surface.get_size()[0]//2,
                                                          self.display_surface.get_size()[1]//2))
@@ -137,17 +146,19 @@ class Level:
         self.display_surface.blit(press_enter_surf, press_enter_rect)
 
     def reset_level(self):
-        for item in self.visible_sprites:
-            item.kill()
-        for item in self.obstacle_sprites:
-            item.kill()
-        for item in self.attack_sprites:
-            item.kill()
-        for item in self.attackable_sprites:
-            item.kill()
-        self.player.kill()
-        self.create_map()
-        self.game_over_status = False
+        if self.game_over_status:
+            for item in self.visible_sprites:
+                item.kill()
+            for item in self.obstacle_sprites:
+                item.kill()
+            for item in self.attack_sprites:
+                item.kill()
+            for item in self.attackable_sprites:
+                item.kill()
+            self.player.kill()
+            self.create_map()
+            self.main_sound.play(loops=-1)
+            self.game_over_status = False
 
     def run(self):
         self.visible_sprites.custom_draw(self.player)

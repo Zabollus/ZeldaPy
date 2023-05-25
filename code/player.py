@@ -6,7 +6,8 @@ from debug import debug
 
 
 class Player(Entity):
-    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic, game_over):
+    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic,
+                 game_over):
         super().__init__(groups)
         self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
@@ -57,7 +58,6 @@ class Player(Entity):
         self.weapon_attack_sound.set_volume(0.2)
 
         self.game_over = game_over
-        self.game_over_music = pygame.mixer.Sound('../audio/GameOver.wav')
 
     def import_player_assets(self):
         character_path = '../graphics/player/'
@@ -204,7 +204,6 @@ class Player(Entity):
     def check_death(self):
         if self.health <= 0:
             self.image = self.animations['dead'][0]
-            self.game_over_music.play()
             self.game_over()
 
     def update(self):
