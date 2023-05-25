@@ -6,7 +6,7 @@ from debug import debug
 
 
 class Player(Entity):
-    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic):
+    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic, game_over):
         super().__init__(groups)
         self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
@@ -56,12 +56,16 @@ class Player(Entity):
         self.weapon_attack_sound = pygame.mixer.Sound('../audio/sword.wav')
         self.weapon_attack_sound.set_volume(0.2)
 
+        self.game_over = game_over
+        self.game_over_music = pygame.mixer.Sound('../audio/GameOver.wav')
+
     def import_player_assets(self):
         character_path = '../graphics/player/'
 
         self.animations = {'up': [], 'down': [], 'left': [], 'right': [],
                            'right_idle': [], 'left_idle': [], 'up_idle': [], 'down_idle': [],
-                           'right_attack': [], 'left_attack': [], 'up_attack': [], 'down_attack': []}
+                           'right_attack': [], 'left_attack': [], 'up_attack': [], 'down_attack': [],
+                           'dead': []}
 
         for animation in self.animations.keys():
             full_path = character_path + animation
@@ -197,6 +201,12 @@ class Player(Entity):
         else:
             self.energy = self.stats['energy']
 
+    def check_death(self):
+        if self.health <= 0:
+            self.image = self.animations['dead'][0]
+            self.game_over_music.play()
+            self.game_over()
+
     def update(self):
         self.input()
         self.cooldowns()
@@ -204,3 +214,4 @@ class Player(Entity):
         self.animate()
         self.move(self.stats['speed'])
         self.energy_recovery()
+        self.check_death()

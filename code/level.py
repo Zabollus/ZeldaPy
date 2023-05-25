@@ -18,6 +18,7 @@ class Level:
         self.player = None
         self.display_surface = pygame.display.get_surface()
         self.game_paused = False
+        self.game_over_status = False
 
         self.visible_sprites = YSortCameraGroup()
         self.obstacle_sprites = pygame.sprite.Group()
@@ -64,7 +65,8 @@ class Level:
                         if style == 'entities':
                             if col == '394':
                                 self.player = Player((x, y), [self.visible_sprites], self.obstacle_sprites,
-                                                     self.create_attack, self.destroy_attack, self.create_magic)
+                                                     self.create_attack, self.destroy_attack, self.create_magic,
+                                                     self.game_over)
                             else:
                                 if col == '390':
                                     monster_name = 'bamboo'
@@ -123,15 +125,42 @@ class Level:
     def toggle_menu(self):
         self.game_paused = not self.game_paused
 
+    def game_over(self):
+        self.game_over_status = True
+        game_over_surf = pygame.font.Font(UI_FONT, 120).render('GAME OVER', False, 'red')
+        game_over_rect = game_over_surf.get_rect(center=(self.display_surface.get_size()[0]//2,
+                                                         self.display_surface.get_size()[1]//2))
+        self.display_surface.blit(game_over_surf, game_over_rect)
+        press_enter_surf = pygame.font.Font(UI_FONT, 30). render('Press enter to play again', False, 'red')
+        press_enter_rect = press_enter_surf.get_rect(center=(self.display_surface.get_size()[0]//2,
+                                                             self.display_surface.get_size()[1]*(2/3)))
+        self.display_surface.blit(press_enter_surf, press_enter_rect)
+
+    def reset_level(self):
+        for item in self.visible_sprites:
+            item.kill()
+        for item in self.obstacle_sprites:
+            item.kill()
+        for item in self.attack_sprites:
+            item.kill()
+        for item in self.attackable_sprites:
+            item.kill()
+        self.player.kill()
+        self.create_map()
+        self.game_over_status = False
+
     def run(self):
         self.visible_sprites.custom_draw(self.player)
         self.ui.display(self.player)
-        if self.game_paused:
-            self.upgrade.display()
+        if not self.game_over_status:
+            if self.game_paused:
+                self.upgrade.display()
+            else:
+                self.visible_sprites.update()
+                self.visible_sprites.enemy_update(self.player)
+                self.player_attack_logic()
         else:
-            self.visible_sprites.update()
-            self.visible_sprites.enemy_update(self.player)
-            self.player_attack_logic()
+            self.game_over()
 
 
 class YSortCameraGroup(pygame.sprite.Group):
