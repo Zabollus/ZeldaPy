@@ -27,6 +27,8 @@ class Level:
         self.attack_sprites = pygame.sprite.Group()
         self.attackable_sprites = pygame.sprite.Group()
 
+        self.monster_counter = 0
+
         self.create_map()
 
         self.ui = UI()
@@ -84,7 +86,8 @@ class Level:
                                     monster_name = 'squid'
                                 Enemy(monster_name, (x, y), [self.visible_sprites, self.attackable_sprites],
                                       self.obstacle_sprites, self.damage_player, self.trigger_death_particles,
-                                      self.add_exp)
+                                      self.add_exp, self.decrease_monster_counter)
+                                self.monster_counter += 1
 
     def create_attack(self):
         self.current_attack = Weapon(self.player, [self.visible_sprites, self.attack_sprites])
@@ -125,6 +128,9 @@ class Level:
     def trigger_death_particles(self, pos, particle_type):
         self.animation_player.create_particles(particle_type, pos, self.visible_sprites)
 
+    def decrease_monster_counter(self):
+        self.monster_counter -= 1
+
     def add_exp(self, amount):
         self.player.exp += amount
 
@@ -137,12 +143,12 @@ class Level:
             self.game_over_music.play()
             self.game_over_status = True
         game_over_surf = pygame.font.Font(UI_FONT, 120).render('GAME OVER', False, 'red')
-        game_over_rect = game_over_surf.get_rect(center=(self.display_surface.get_size()[0]//2,
-                                                         self.display_surface.get_size()[1]//2))
+        game_over_rect = game_over_surf.get_rect(center=(self.display_surface.get_size()[0] // 2,
+                                                         self.display_surface.get_size()[1] // 2))
         self.display_surface.blit(game_over_surf, game_over_rect)
-        press_enter_surf = pygame.font.Font(UI_FONT, 30). render('Press enter to play again', False, 'red')
-        press_enter_rect = press_enter_surf.get_rect(center=(self.display_surface.get_size()[0]//2,
-                                                             self.display_surface.get_size()[1]*(2/3)))
+        press_enter_surf = pygame.font.Font(UI_FONT, 30).render('Press enter to play again', False, 'red')
+        press_enter_rect = press_enter_surf.get_rect(center=(self.display_surface.get_size()[0] // 2,
+                                                             self.display_surface.get_size()[1] * (2 / 3)))
         self.display_surface.blit(press_enter_surf, press_enter_rect)
 
     def reset_level(self):
@@ -160,6 +166,13 @@ class Level:
             self.main_sound.play(loops=-1)
             self.game_over_status = False
 
+    def check_win(self):
+        if self.monster_counter <= 0:
+            win_surf = pygame.font.Font(UI_FONT, 120).render('YOU WON', False, 'green')
+            win_rect = win_surf.get_rect(center=(self.display_surface.get_size()[0] // 2,
+                                                 self.display_surface.get_size()[1] // 2))
+            self.display_surface.blit(win_surf, win_rect)
+
     def run(self):
         self.visible_sprites.custom_draw(self.player)
         self.ui.display(self.player)
@@ -170,6 +183,7 @@ class Level:
                 self.visible_sprites.update()
                 self.visible_sprites.enemy_update(self.player)
                 self.player_attack_logic()
+                self.check_win()
         else:
             self.game_over()
 
@@ -198,6 +212,7 @@ class YSortCameraGroup(pygame.sprite.Group):
             self.display_surface.blit(sprite.image, offset_pos)
 
     def enemy_update(self, player):
-        enemy_sprites = [sprite for sprite in self.sprites() if hasattr(sprite, 'sprite_type') and sprite.sprite_type == 'enemy']
+        enemy_sprites = [sprite for sprite in self.sprites() if
+                         hasattr(sprite, 'sprite_type') and sprite.sprite_type == 'enemy']
         for enemy in enemy_sprites:
             enemy.enemy_update(player)

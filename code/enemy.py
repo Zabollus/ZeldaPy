@@ -6,7 +6,8 @@ from debug import debug
 
 
 class Enemy(Entity):
-    def __init__(self, monster_name, pos, groups, obstacle_sprites, damage_player, trigger_death_particles, add_exp):
+    def __init__(self, monster_name, pos, groups, obstacle_sprites, damage_player, trigger_death_particles,
+                 add_exp, decrease_monster_counter):
         # general setup
         super().__init__(groups)
         self.sprite_type = 'enemy'
@@ -40,6 +41,7 @@ class Enemy(Entity):
         self.damage_player = damage_player
         self.trigger_death_particles = trigger_death_particles
         self.add_exp = add_exp
+        self.decrease_monster_counter = decrease_monster_counter
 
         # invincibility timer
         self.vulnerable = True
@@ -136,6 +138,7 @@ class Enemy(Entity):
             self.trigger_death_particles(self.rect.center, self.monster_name)
             self.add_exp(self.exp)
             self.death_sound.play()
+            self.decrease_monster_counter()
 
     def hit_reaction(self):
         if not self.vulnerable:
